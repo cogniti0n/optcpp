@@ -24,8 +24,12 @@ target_include_directories(optlib INTERFACE
 
 target_link_libraries(optlib INTERFACE Eigen3::Eigen)
 
-# Example executable
-add_executable(gd_quadratic examples/gd_quadratic.cpp)
-target_link_libraries(gd_quadratic PRIVATE optlib)
-add_executable(newton_quadratic examples/newton_quadratic.cpp)
-target_link_libraries(newton_quadratic PRIVATE optlib)
+file(GLOB EXAMPLE_SOURCES CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp
+)
+
+foreach(example_src ${EXAMPLE_SOURCES})
+  get_filename_component(example_name ${example_src} NAME_WE)
+  add_executable(${example_name} ${example_src})
+  target_link_libraries(${example_name} PRIVATE optlib)
+endforeach()

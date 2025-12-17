@@ -33,7 +33,7 @@ inline Vector newton(
         {
             std::cout << "iter " << k + 1 << " | gradient norm : " << grad.norm() << "\n ";
         }
-        Vector dx = -obj.hessian(x).ldlt().solve(grad);
+        Vector dx = -obj.hessian(x).ldlt().solve(grad); // TODO: ldlt might fail!
         Scalar bt_stepsize = backtrack_search(obj, x, dx, btparams);
         x += bt_stepsize * dx;
     }
