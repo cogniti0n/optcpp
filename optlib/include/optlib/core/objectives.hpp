@@ -16,4 +16,8 @@ public:
     {
         throw std::logic_error("Hessian is not implemented");
     }
+    int getdim() { return dim; }
+
+private:
+    int dim;
 };

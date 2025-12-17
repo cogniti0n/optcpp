@@ -9,7 +9,6 @@ using namespace optlib;
 struct GDParams
 {
     int max_iters = 1000;
-    Scalar step_size = 1e-2;
     Scalar grad_tol = 1e-6;
 };
 
@@ -20,7 +19,7 @@ inline Vector gradient_descent(
     bool record = false)
 {
     Vector x = x0;
-    BacktrackParams btparams;
+    BacktrackingStepsize bt_stepsize(0.5, 0.5);
 
     for (int k = 0; k < params.max_iters; ++k)
     {
@@ -33,8 +32,8 @@ inline Vector gradient_descent(
         {
             std::cout << "iter " << k + 1 << " | gradient norm: " << grad.norm() << "\n";
         }
-        Scalar bt_stepsize = backtrack_search(obj, x, -grad, btparams);
-        x -= bt_stepsize * grad;
+        Scalar t = bt_stepsize.choose(obj, x, -grad);
+        x = x - t * grad;
     }
     return x;
 }

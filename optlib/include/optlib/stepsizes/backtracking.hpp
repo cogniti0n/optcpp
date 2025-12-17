@@ -1,32 +1,34 @@
 #pragma once
 
 #include "optlib/core/objectives.hpp"
+#include "optlib/core/stepsizes.hpp"
 
 using namespace optlib;
 
-// TODO: fix parameters (maybe a universal stepsize solver class?)
-struct BacktrackParams
+class BacktrackingStepsize : StepsizePolicy
 {
-    Scalar alpha = 0.5;
-    Scalar beta = 0.5;
-    Scalar stepsize_tol = 1e-8;
-};
-
-inline Scalar backtrack_search(
-    const Objective &obj,
-    const Vector &x,
-    const Vector &dx,
-    const BacktrackParams &btparams)
-{
-    Scalar t = 1.0;
-    Scalar l = obj.gradient(x).dot(dx);
-    while (t > btparams.stepsize_tol)
+public:
+    BacktrackingStepsize(
+        Scalar alpha_,
+        Scalar beta_,
+        Scalar stepsize_threshold_ = 1e-8) : alpha(alpha_), beta(beta_), stepsize_threshold(stepsize_threshold_) {}
+    Scalar choose(
+        const Objective &obj,
+        const Vector &xk,
+        const Vector &pk) override
     {
-        if (obj.value(x + t * dx) < obj.value(x) + btparams.alpha * t * l)
+        Scalar t = 1.0;
+        Scalar l = obj.gradient(xk).dot(pk);
+        while (t > stepsize_threshold)
         {
-            break;
+            if (obj.value(xk + t * pk) < obj.value(xk) + alpha * t * l)
+                break;
+            t = beta * t;
         }
-        t = btparams.beta * t;
+        return t;
     }
-    return t;
-}
+    void reset() override {}
+
+private:
+    Scalar alpha, beta, stepsize_threshold;
+};

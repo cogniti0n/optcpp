@@ -9,7 +9,6 @@ using namespace optlib;
 struct NewtonParams
 {
     int max_iters = 1000;
-    Scalar step_size = 1e-2;
     Scalar grad_tol = 1e-6;
 };
 
@@ -20,7 +19,7 @@ inline Vector newton(
     bool record = false)
 {
     Vector x = x0;
-    BacktrackParams btparams;
+    BacktrackingStepsize bt_stepsize(0.5, 0.5);
 
     for (int k = 0; k < ntparams.max_iters; ++k)
     {
@@ -33,9 +32,9 @@ inline Vector newton(
         {
             std::cout << "iter " << k + 1 << " | gradient norm : " << grad.norm() << "\n ";
         }
-        Vector dx = -obj.hessian(x).ldlt().solve(grad); // TODO: ldlt might fail!
-        Scalar bt_stepsize = backtrack_search(obj, x, dx, btparams);
-        x += bt_stepsize * dx;
+        Vector p = -obj.hessian(x).ldlt().solve(grad); // TODO: ldlt might fail!
+        Scalar t = bt_stepsize.choose(obj, x, p);
+        x = x + t * p;
     }
     return x;
 }
