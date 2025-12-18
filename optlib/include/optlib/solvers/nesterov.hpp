@@ -7,38 +7,38 @@
 
 namespace optlib
 {
-    struct NewtonOptions
+    struct NesterovOptions
     {
         SolverOptions base;
-        bool safe_solve = false;
+        Scalar alpha;
     };
 
-    inline SolverResult newton(
+    inline SolverResult nesterov(
         const Objective &obj,
         const Vector &x0,
-        const NewtonOptions &options,
+        const NesterovOptions &options,
         bool store_result = false)
     {
         SolverResult res;
-
         Vector x = x0;
-        BacktrackingStepsize bt_stepsize(0.5, 0.5);
+        Vector y = x0;
 
         int k;
         for (k = 0; k < options.base.max_iters; ++k)
         {
-            Vector grad = obj.gradient(x);
-            if (grad.norm() < options.base.grad_tol)
+            Vector prev = x;
+
+            Vector grad_y = obj.gradient(y);
+            if (grad_y.norm() < options.base.grad_tol)
             {
                 break;
             }
-            Vector p = -obj.hessian(x).ldlt().solve(grad); // TODO: ldlt might fail!
-            Scalar t = bt_stepsize.choose(obj, x, p);
-            x = x + t * p;
-
+            x = y - options.alpha * grad_y;
+            Scalar tmp = static_cast<Scalar>(k);
+            y = x + tmp / (tmp + 3) * (x - prev);
             if (store_result)
             {
-                res.history.push_back({k, obj.value(x), grad.norm(), t});
+                res.history.push_back({k, obj.value(x), grad_y.norm(), options.alpha});
             }
         }
         res.x = x;

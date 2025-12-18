@@ -1,42 +1,51 @@
 #pragma once
 
-#include <iostream>
 #include "optlib/core/objectives.hpp"
+#include "optlib/core/options.hpp"
+#include "optlib/core/store_results.hpp"
 #include "optlib/stepsizes/backtracking.hpp"
 
-using namespace optlib;
-
-struct MomentumParams
+namespace optlib
 {
-    int max_iters = 1000;
-    Scalar step_size = 1e-2;
-    Scalar grad_tol = 1e-6;
-};
-
-inline Vector momentum(
-    const Objective &obj,
-    const Vector &x0,
-    const MomentumParams &mtparams,
-    bool record = false)
-{
-    Vector x = x0;
-    Vector y = x0;
-
-    for (int k = 0; k < mtparams.max_iters; ++k)
+    struct MomentumOptions
     {
-        Vector prev = x;
+        SolverOptions base;
+        Scalar alpha;
+        Scalar beta;
+    };
 
-        Vector grad_y = obj.gradient(y);
-        if (grad_y.norm() < mtparams.grad_tol)
+    inline SolverResult momentum(
+        const Objective &obj,
+        const Vector &x0,
+        const MomentumOptions &options,
+        bool store_result = false)
+    {
+        SolverResult res;
+        Vector x = x0;
+        Vector v = Vector::Zero(x0.size());
+
+        int k;
+        for (k = 0; k < options.base.max_iters; ++k)
         {
-            break;
+            Vector prev = x;
+
+            Vector grad = obj.gradient(x);
+            if (grad.norm() < options.base.grad_tol)
+            {
+                break;
+            }
+            v = options.beta * v - options.alpha * grad;
+            x = x + v;
+
+            if (store_result)
+            {
+                res.history.push_back({k, obj.value(x), grad.norm(), options.alpha});
+            }
         }
-        if (record)
-        {
-            std::cout << "iter " << k + 1 << " | gradient norm : " << grad_y.norm() << "\n ";
-        }
-        x = y - mtparams.step_size * grad_y;
-        y = x + k / (k + 3) * (x - prev);
+        res.x = x;
+        res.f = obj.value(x);
+        res.grad_norm = obj.gradient(x).norm();
+        res.iters = k;
+        return res;
     }
-    return x;
 }

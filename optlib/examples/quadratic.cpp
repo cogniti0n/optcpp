@@ -1,6 +1,9 @@
 #include <iostream>
 #include "optlib/core/objectives.hpp"
 #include "optlib/solvers/gradient_descent.hpp"
+#include "optlib/solvers/newton.hpp"
+#include "optlib/solvers/momentum.hpp"
+#include "optlib/solvers/nesterov.hpp"
 
 using namespace optlib;
 
@@ -35,14 +38,22 @@ int main()
 
     Vector x0 = Vector::Zero(d);
 
-    GDParams params;
-    params.step_size = 0.1;
+    // GDOptions options;
+    // NewtonOptions options;
+    // MomentumOptions options;
+    // options.alpha = 0.1; options.beta = 0.1;
+    NesterovOptions options;
+    options.alpha = 0.1;
 
-    Vector x_star = gradient_descent(obj, x0, params, true);
+    // SolverResult res = gradient_descent(obj, x0, options);
+    // SolverResult res = newton(obj, x0, options);
+    // SolverResult res = momentum(obj, x0, options);
+    SolverResult res = nesterov(obj, x0, options);
 
     std::cout << "Solution:\n"
-              << x_star << std::endl;
-    std::cout << "Gradient norm: " << obj.gradient(x_star).norm() << std::endl;
+              << res.x << std::endl;
+    std::cout << "Gradient norm: " << res.grad_norm << std::endl;
+    std::cout << "Iteration number: " << res.iters << std::endl;
 
     return 0;
 }

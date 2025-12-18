@@ -5,19 +5,20 @@
 
 // objective abstract base class
 
-using namespace optlib;
-
-class StepsizePolicy
+namespace optlib
 {
-public:
-    virtual ~StepsizePolicy() = default;
+    class StepsizePolicy
+    {
+    public:
+        virtual ~StepsizePolicy() = default;
 
-    virtual void reset() = 0;
+        virtual void reset() = 0;
 
-    virtual Scalar choose(
-        const Objective &obj,
-        const Vector &xk,
-        const Vector &pk) = 0;
+        virtual Scalar choose(
+            const Objective &obj,
+            const Vector &xk,
+            const Vector &pk) = 0;
 
-private:
-};
+    private:
+    };
+}
